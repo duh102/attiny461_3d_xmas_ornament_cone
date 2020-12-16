@@ -13,6 +13,7 @@
 #define LEDS 14
 
 const uint8_t color_prog[STATES] PROGMEM = {
+#ifndef ALTCODE
    0,
    20,
    16,
@@ -29,6 +30,24 @@ const uint8_t color_prog[STATES] PROGMEM = {
    6,
    2,
    4,
+#else
+   0,
+   2,
+   4,
+   8,
+   16,
+   20,
+   22,
+   24,
+   26,
+   24,
+   22,
+   20,
+   16,
+   8,
+   4,
+   2,
+#endif
 };
 
 volatile uint8_t colors[LEDS][3];
@@ -65,6 +84,7 @@ int main() {
       uint8_t st = odd? state[idx] & 0xf : (state[idx] & 0xf0) >> 4;
       uint8_t mask = odd? colorMask[idx] & 0xf : (colorMask[idx] & 0xf0) >> 4;
 
+#ifndef ALTCODE
       if(st == 0 && (random()%100) < 10) {
         st = 1;
         mask = (random()%6)+1;
@@ -81,6 +101,24 @@ int main() {
         colors[i][2] = pgm_read_byte( &(color_prog[st]) ) * (mask&4);
       }
     }
+#else
+      if(st == 0 && (random()%100) < 10) {
+        st = 1;
+        mask = (random()%6)+1;
+        state[idx] = (odd? (state[idx] & 0xf0) : state[idx] & 0xf) | (odd? st : st<<4 );
+        colorMask[idx] = (odd? (colorMask[idx] & 0xf0) : colorMask[idx] & 0xf) | (odd? mask : mask<<4 );
+        colors[i][0] = pgm_read_byte( &(color_prog[st]) ) * (mask&1);
+        colors[i][1] = pgm_read_byte( &(color_prog[st]) ) * (mask&2);
+        colors[i][2] = pgm_read_byte( &(color_prog[st]) ) * (mask&4);
+      } else if(st > 0 && ( st!=8 || (random()%100)<5 ) ) {
+        st = (st + 1) % STATES;
+        state[idx] = (odd? (state[idx] & 0xf0) : state[idx] & 0xf) | (odd? st : st<<4 );
+        colors[i][0] = pgm_read_byte( &(color_prog[st]) ) * (mask&1);
+        colors[i][1] = pgm_read_byte( &(color_prog[st]) ) * (mask&2);
+        colors[i][2] = pgm_read_byte( &(color_prog[st]) ) * (mask&4);
+      }
+    }
+#endif
 
     cli();
     for(uint8_t i = 0; i < LEDS; i++) {
@@ -93,7 +131,7 @@ int main() {
     //  CLKPR[3:0] sets the clock division factor, set it to x/16, so 750kHz
     CLKPR = 0b100;
 
-    _delay_ms(100);
+    _delay_ms(50);
 
     // Allow changes to the clock prescaler
     CLKPR = 1<<CLKPCE;

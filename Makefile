@@ -1,6 +1,12 @@
-FLAGS = -mmcu=attiny13a -DF_CPU=750000UL -O2 -std=c99 $(DEBUG)
+FLAGS = -mmcu=attiny13a -DF_CPU=750000UL -O2 -std=c99 $(DEBUG) $(ALTCODE)
 
-all: tree.hex
+all: flashy
+
+flashy: tree.hex
+
+slowglow: tree.hex 
+
+slowglow: ALTCODE = -DALTCODE
 
 %.hex: %.elf ws2812.h
 	avr-objcopy -O ihex $< $@
