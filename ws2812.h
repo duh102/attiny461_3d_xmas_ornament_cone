@@ -7,12 +7,12 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-#define PIN_LED PB4
-#define PORT_LED ((&PORTB)-__SFR_OFFSET)
+#define PIN_LED PA0
+#define PORT_LED ((&PORTA)-__SFR_OFFSET)
 
 static inline void ws2812_init(void)
 {
-	DDRB |= (1 << PIN_LED);
+	DDRA |= (1 << PIN_LED);
 }
 
 static inline void ws2812_send_single_byte(uint8_t byte)
